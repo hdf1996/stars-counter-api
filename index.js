@@ -42,11 +42,19 @@ const query = async (login, from, acc) => {
 
 app.get('/stars/:login', async (req, res) => {
   console.log(`Requesting count for ${req.params.login}`)
-  const result = await query(req.params.login, null, []);
-  res.send({
-    avatar: result[1],
-    total: result[0].reduce((a, b) => a + b[1], 0)
-  })
+  try {
+    const result = await query(req.params.login, null, []);
+    res.send({
+      avatar: result[1],
+      total: result[0].reduce((a, b) => a + b[1], 0)
+    })
+  } catch (e) {
+    if (e.errors[0].type === 'NOT_FOUND') {
+      res.status(404).send({error: 'User not found'})
+    } else {
+      res.status(500).send({error: 'Unknown error found'})
+    }
+  }
 })
 
 app.listen(port, () => console.log(`Stars count app listening on port ${port}!`))
